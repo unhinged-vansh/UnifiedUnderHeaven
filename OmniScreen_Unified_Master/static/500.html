@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>500: Circuit Breaker | OmniScreen Terminal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070a12;
+      --card: #0f172a;
+      --border: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #2563eb;
+      --orange: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 2rem;
+    }
+    .code { font-family: 'JetBrains Mono', monospace; font-size: 6rem; font-weight: 800; color: var(--orange); line-height: 1; margin-bottom: 0.5rem; }
+    .badge { background: rgba(245, 158, 11, 0.15); color: var(--orange); padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.3); margin-bottom: 1.5rem; }
+    h1 { font-size: 1.85rem; font-weight: 800; margin-bottom: 0.75rem; }
+    p { color: var(--text-muted); max-width: 500px; font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem; }
+    a { text-decoration: none; background: var(--accent); color: white; font-weight: 600; font-size: 0.9rem; padding: 0.7rem 1.4rem; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div class="code">500</div>
+  <div class="badge">TRADING HALT • CIRCUIT BREAKER ENGAGED</div>
+  <h1>Internal Engine Exception</h1>
+  <p>An unexpected computational exception occurred while processing the quantitative calculation. The engine is re-synchronizing memory buffers.</p>
+  <a href="/">Reload Trading Terminal</a>
+</body>
+</html>

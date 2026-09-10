@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniScreen | Institutional Global Quantitative Terminal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070a12;
+      --card-bg: #0f172a;
+      --card-alt: #131d35;
+      --border: #1e293b;
+      --border-focus: #3b82f6;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --green: #10b981;
+      --red: #ef4444;
+      --orange: #f59e0b;
+      --purple: #8b5cf6;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Ticker Tape */
+    .ticker-tape {
+      background: #0b1120;
+      border-bottom: 1px solid var(--border);
+      padding: 0.4rem 1.5rem;
+      display: flex;
+      gap: 2rem;
+      overflow-x: auto;
+      white-space: nowrap;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      scrollbar-width: none;
+    }
+    .tape-item { display: flex; gap: 0.5rem; align-items: center; }
+    .tape-symbol { font-weight: 700; color: #cbd5e1; }
+
+    /* Header */
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .brand-icon {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      font-weight: 800;
+      padding: 0.4rem 0.65rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      letter-spacing: -0.02em;
+    }
+    .brand-title { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; }
+    .brand-sub { font-size: 0.72rem; color: var(--text-muted); }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    select, input, button {
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    select:focus, input:focus { border-color: var(--border-focus); box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+    button { cursor: pointer; font-weight: 600; }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: #1e293b; color: #e2e8f0; }
+    .btn-secondary:hover { background: #334155; }
+
+    /* Layout Container */
+    .container {
+      max-width: 1560px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* KPI Summary Row */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+    }
+    .kpi-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em; }
+    .kpi-val { font-size: 1.45rem; font-weight: 700; font-family: var(--font-mono); margin-top: 0.25rem; color: #ffffff; }
+
+    /* Strategy Presets */
+    .presets-bar {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .preset-pill {
+      background: #162032;
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      padding: 0.35rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preset-pill:hover, .preset-pill.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    /* Card Wrapper */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    /* Filter Builder */
+    .filters-list { display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1rem; }
+    .filter-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1.5fr auto;
+      gap: 0.75rem;
+      align-items: center;
+      background: #141d33;
+      padding: 0.6rem 0.85rem;
+      border-radius: 6px;
+      border: 1px solid #1e293b;
+    }
+    .btn-remove { background: transparent; border: none; color: var(--red); font-size: 1.1rem; }
+
+    /* Data Table */
+    .table-container {
+      overflow-x: auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.825rem; }
+    th {
+      background: #111a2e;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    th:hover { color: var(--text); }
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      font-family: var(--font-mono);
+    }
+    tr:hover td { background: #162238; cursor: pointer; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.725rem;
+      font-weight: 700;
+    }
+    .badge-green { background: rgba(16,185,129,0.15); color: var(--green); }
+    .badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
+    .badge-tier { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(5px);
+      z-index: 60;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 960px;
+      max-height: 92vh;
+      overflow-y: auto;
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .chart-container {
+      background: #090e1a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      height: 280px;
+    }
+    canvas { width: 100% !important; height: 100% !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Global Ticker Tape -->
+  <div class="ticker-tape">
+    <div class="tape-item"><span class="tape-symbol">S&P 500</span> <span>5,560.80</span> <span class="badge-green">+0.45%</span></div>
+    <div class="tape-item"><span class="tape-symbol">NASDAQ 100</span> <span>19,420.15</span> <span class="badge-green">+0.82%</span></div>
+    <div class="tape-item"><span class="tape-symbol">NIFTY 50</span> <span>25,180.50</span> <span class="badge-green">+0.65%</span></div>
+    <div class="tape-item"><span class="tape-symbol">FTSE 100</span> <span>8,310.20</span> <span class="badge-red">-0.12%</span></div>
+    <div class="tape-item"><span class="tape-symbol">NIKKEI 225</span> <span>36,890.00</span> <span class="badge-green">+1.15%</span></div>
+    <div class="tape-item"><span class="tape-symbol">GOLD (XAU)</span> <span>$2,518.40</span> <span class="badge-green">+0.30%</span></div>
+    <div class="tape-item"><span class="tape-symbol">BITCOIN</span> <span>$58,920.00</span> <span class="badge-green">+2.40%</span></div>
+    <div class="tape-item"><span class="tape-symbol">BRENT CRUDE</span> <span>$73.85</span> <span class="badge-red">-0.85%</span></div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-group">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <div class="brand-title">OmniScreen Institutional</div>
+        <div class="brand-sub">Global Quantitative & Forensic Screener</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <input type="text" id="liveTickerSearch" placeholder="Type any ticker (e.g. TSLA, TATAMOTORS.NS)..." style="width: 280px;">
+      <button class="btn-primary" onclick="ingestLiveTicker()">+ Ingest Asset</button>
+
+      <select id="marketFilter" onchange="runScreener()">
+        <option value="ALL">🌐 All Global Markets</option>
+        <option value="US">🇺🇸 United States (NYSE/NASDAQ)</option>
+        <option value="IN">🇮🇳 India (NSE/BSE)</option>
+        <option value="UK">🇬🇧 United Kingdom (LSE)</option>
+        <option value="JP">🇯🇵 Japan (TSE)</option>
+        <option value="NL">🇳🇱 Netherlands (Euronext)</option>
+        <option value="DE">🇩🇪 Germany (XETRA)</option>
+        <option value="FR">🇫🇷 France (Euronext)</option>
+        <option value="DK">🇩🇰 Denmark (OMX)</option>
+        <option value="Global">Macro Commodities & Crypto</option>
+      </select>
+
+      <select id="sectorFilter" onchange="runScreener()">
+        <option value="ALL">All GICS Sectors</option>
+      </select>
+
+      <button class="btn-secondary" onclick="exportData('csv')">Export CSV</button>
+      <a href="/docs" target="_blank" class="btn-secondary" style="text-decoration:none;">API Docs</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Top KPI Banners -->
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">Securities Screened</div><div class="kpi-val" id="kpiCount">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Median Market Cap</div><div class="kpi-val" id="kpiMcap">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Average P/E Multiple</div><div class="kpi-val" id="kpiPE">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Average Return on Equity</div><div class="kpi-val" id="kpiROE">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">Average Quant Rank</div><div class="kpi-val" id="kpiScore">-</div></div>
+    </div>
+
+    <!-- Presets -->
+    <div class="presets-bar">
+      <span style="font-size: 0.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Strategy Presets:</span>
+      <div class="preset-pill" onclick="applyPreset('forensic_bulletproof')">🛡️ Forensic Bulletproof</div>
+      <div class="preset-pill" onclick="applyPreset('buffett_quality')">🏆 Buffett Quality Compounders</div>
+      <div class="preset-pill" onclick="applyPreset('deep_value')">💎 Deep Value & Solvency</div>
+      <div class="preset-pill" onclick="applyPreset('garp')">📈 GARP Growth</div>
+      <div class="preset-pill" onclick="applyPreset('kelly_conviction')">🎯 High-Conviction Kelly</div>
+      <div class="preset-pill" onclick="applyPreset('momentum_breakout')">⚡ Momentum Breakouts</div>
+      <div class="preset-pill" onclick="resetFilters()">🔄 Reset Filters</div>
+    </div>
+
+    <!-- Dynamic Filter Builder -->
+    <div class="card">
+      <div class="card-title">
+        <span>Quantitative & Forensic Filter Engine</span>
+        <span id="matchStats" style="font-family: var(--font-mono); color: var(--accent); font-size: 0.85rem;"></span>
+      </div>
+
+      <div class="filters-list" id="filtersContainer"></div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:0.75rem;">
+        <button class="btn-secondary" onclick="addFilterRow()">+ Add Condition</button>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="btn-secondary" onclick="resetFilters()">Clear</button>
+          <button class="btn-primary" onclick="runScreener()">Scan Order Book</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="changeSort('ticker')">Ticker</th>
+            <th onclick="changeSort('name')">Company / Asset</th>
+            <th onclick="changeSort('country')">Market</th>
+            <th onclick="changeSort('price')">Price</th>
+            <th onclick="changeSort('change_pct_24h')">24h %</th>
+            <th onclick="changeSort('market_cap_usd')">Market Cap ($B)</th>
+            <th onclick="changeSort('market_cap_tier')">Tier</th>
+            <th onclick="changeSort('pe_ratio')">P/E</th>
+            <th onclick="changeSort('roe')">ROE %</th>
+            <th onclick="changeSort('piotroski_f_score')">Piotroski</th>
+            <th onclick="changeSort('altman_z_score')">Altman Z</th>
+            <th onclick="changeSort('beneish_m_score')">Beneish M</th>
+            <th onclick="changeSort('forensic_health_score')">Forensic</th>
+            <th onclick="changeSort('kelly_allocation_pct')">Kelly %</th>
+            <th onclick="changeSort('composite_score')">Quant Rank</th>
+          </tr>
+        </thead>
+        <tbody id="resultsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" id="detailModal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <h2 id="modalTicker" style="font-size: 1.4rem;"></h2>
+          <div id="modalSubtitle" style="color: var(--text-muted); font-size: 0.85rem;"></div>
+        </div>
+        <button class="btn-secondary" onclick="closeModalDirect()">✕</button>
+      </div>
+
+      <div class="chart-container">
+        <canvas id="priceChartCanvas"></canvas>
+      </div>
+
+      <div id="modalMetricsGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem;"></div>
+    </div>
+  </div>
+
+  <script>
+    let METRIC_CATALOG = [];
+    let PRESETS = {};
+    let activeFilters = [];
+    let currentResults = [];
+    let currentSortBy = "market_cap_usd";
+    let currentSortDir = "desc";
+
+    async function init() {
+      const [metricsRes, presetsRes, marketsRes] = await Promise.all([
+        fetch('/api/v1/metrics').then(r => r.json()),
+        fetch('/api/v1/presets').then(r => r.json()),
+        fetch('/api/v1/markets').then(r => r.json())
+      ]);
+      METRIC_CATALOG = metricsRes;
+      PRESETS = presetsRes;
+
+      const sectorFilter = document.getElementById('sectorFilter');
+      marketsRes.sectors.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        sectorFilter.appendChild(opt);
+      });
+
+      addFilterRow('market_cap_usd', 'gt', 5000000000);
+      runScreener();
+    }
+
+    async function ingestLiveTicker() {
+      const input = document.getElementById('liveTickerSearch').value.trim();
+      if (!input) return;
+      try {
+        const res = await fetch(`/api/v1/securities/${input}`);
+        if (res.ok) {
+          alert(`Successfully ingested live security: ${input.toUpperCase()}`);
+          runScreener();
+        } else {
+          alert(`Could not load ticker '${input}'. Check symbol format.`);
+        }
+      } catch (e) {
+        alert("Error connecting to exchange gateway.");
+      }
+    }
+
+    function addFilterRow(field = null, op = null, val = null) {
+      const f = field || (METRIC_CATALOG[0]?.id || "pe_ratio");
+      const o = op || "lt";
+      const v = val !== null ? val : 30;
+      activeFilters.push({ id: 'f_' + Math.random().toString(36).substr(2,7), field: f, operator: o, value: v });
+      renderFilters();
+    }
+
+    function removeFilterRow(id) {
+      activeFilters = activeFilters.filter(f => f.id !== id);
+      renderFilters();
+      runScreener();
+    }
+
+    function renderFilters() {
+      const container = document.getElementById('filtersContainer');
+      container.innerHTML = '';
+
+      activeFilters.forEach(f => {
+        const row = document.createElement('div');
+        row.className = 'filter-row';
+
+        const fieldSel = document.createElement('select');
+        METRIC_CATALOG.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.id;
+          opt.textContent = `${m.name} (${m.category})`;
+          if (m.id === f.field) opt.selected = true;
+          fieldSel.appendChild(opt);
+        });
+        fieldSel.onchange = (e) => { f.field = e.target.value; };
+
+        const opSel = document.createElement('select');
+        [
+          { v: 'gt', l: '>' }, { v: 'gte', l: '≥' },
+          { v: 'lt', l: '<' }, { v: 'lte', l: '≤' }, { v: 'eq', l: '=' }
+        ].forEach(o => {
+          const opt = document.createElement('option');
+          opt.value = o.v;
+          opt.textContent = o.l;
+          if (o.v === f.operator) opt.selected = true;
+          opSel.appendChild(opt);
+        });
+        opSel.onchange = (e) => { f.operator = e.target.value; };
+
+        const valInp = document.createElement('input');
+        valInp.type = 'number';
+        valInp.step = 'any';
+        valInp.value = f.value;
+        valInp.onchange = (e) => { f.value = parseFloat(e.target.value); };
+
+        const btnDel = document.createElement('button');
+        btnDel.className = 'btn-remove';
+        btnDel.textContent = '✕';
+        btnDel.onclick = () => removeFilterRow(f.id);
+
+        row.appendChild(fieldSel);
+        row.appendChild(opSel);
+        row.appendChild(valInp);
+        row.appendChild(btnDel);
+        container.appendChild(row);
+      });
+    }
+
+    function applyPreset(key) {
+      const p = PRESETS[key];
+      if (!p) return;
+      activeFilters = p.filters.conditions.map(c => ({
+        id: 'f_' + Math.random().toString(36).substr(2,7),
+        field: c.field,
+        operator: c.operator,
+        value: c.value
+      }));
+      currentSortBy = p.sort_by;
+      currentSortDir = p.sort_direction;
+      renderFilters();
+      runScreener();
+    }
+
+    function resetFilters() {
+      activeFilters = [];
+      renderFilters();
+      runScreener();
+    }
+
+    async function runScreener() {
+      const market = document.getElementById('marketFilter').value;
+      const sector = document.getElementById('sectorFilter').value;
+
+      const payload = {
+        market: market,
+        sector: sector,
+        sort_by: currentSortBy,
+        sort_direction: currentSortDir,
+        page: 1,
+        page_size: 100,
+        filters: {
+          logic: "AND",
+          conditions: activeFilters.map(f => ({
+            field: f.field,
+            operator: f.operator,
+            value: f.value
+          }))
+        }
+      };
+
+      try {
+        const res = await fetch('/api/v1/screener/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        currentResults = data.data || [];
+        document.getElementById('matchStats').textContent = `${data.total_matches} Matching Securities`;
+        renderKPIs(currentResults, data.total_matches);
+        renderTable(currentResults);
+      } catch (err) {
+        console.error("Screener scan failed", err);
+      }
+    }
+
+    function renderKPIs(data, totalMatches) {
+      document.getElementById('kpiCount').textContent = `${totalMatches}`;
+      if (!data.length) {
+        document.getElementById('kpiMcap').textContent = "-";
+        document.getElementById('kpiPE').textContent = "-";
+        document.getElementById('kpiROE').textContent = "-";
+        document.getElementById('kpiScore').textContent = "-";
+        return;
+      }
+      const mcaps = data.map(d => d.market_cap_usd).filter(Boolean);
+      const medianMcap = mcaps.sort((a,b)=>a-b)[Math.floor(mcaps.length/2)] / 1e9;
+      const avgPE = (data.reduce((acc, d) => acc + (d.pe_ratio || 0), 0) / data.length).toFixed(1);
+      const avgROE = (data.reduce((acc, d) => acc + (d.roe || 0), 0) / data.length * 100).toFixed(1);
+      const avgScore = (data.reduce((acc, d) => acc + (d.composite_score || 0), 0) / data.length).toFixed(1);
+
+      document.getElementById('kpiMcap').textContent = `$${medianMcap.toFixed(1)}B`;
+      document.getElementById('kpiPE').textContent = `${avgPE}x`;
+      document.getElementById('kpiROE').textContent = `${avgROE}%`;
+      document.getElementById('kpiScore').textContent = `${avgScore} / 100`;
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('resultsTableBody');
+      tbody.innerHTML = '';
+      if (!data.length) {
+        tbody.innerHTML = `<tr><td colspan="15" style="text-align:center; padding:2rem; color:var(--text-muted);">No securities match active criteria.</td></tr>`;
+        return;
+      }
+
+      data.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.onclick = () => openModal(s.ticker);
+
+        const chgClass = s.change_pct_24h >= 0 ? 'badge-green' : 'badge-red';
+        const chgSign = s.change_pct_24h >= 0 ? '+' : '';
+        const mcapB = (s.market_cap_usd / 1e9).toFixed(2);
+
+        tr.innerHTML = `
+          <td style="font-weight:700; color:var(--accent);">${s.ticker}</td>
+          <td style="font-family:var(--font-sans); font-weight:600;">${s.name}</td>
+          <td><span class="badge badge-tier">${s.country} · ${s.exchange}</span></td>
+          <td>${s.currency} ${s.price.toFixed(2)}</td>
+          <td><span class="badge ${chgClass}">${chgSign}${s.change_pct_24h}%</span></td>
+          <td>$${mcapB}B</td>
+          <td><span class="badge badge-tier">${s.market_cap_tier || 'Large'}</span></td>
+          <td>${s.pe_ratio ? s.pe_ratio.toFixed(1) : '-'}</td>
+          <td>${s.roe ? (s.roe * 100).toFixed(1) + '%' : '-'}</td>
+          <td><span style="color:var(--green); font-weight:700;">${s.piotroski_f_score}</span>/9</td>
+          <td>${s.altman_z_score ? s.altman_z_score.toFixed(2) : '-'}</td>
+          <td style="color:${s.beneish_m_score < -1.78 ? 'var(--green)' : 'var(--red)'}">${s.beneish_m_score}</td>
+          <td><span style="font-weight:700;">${s.forensic_health_score}</span>/100</td>
+          <td>${s.kelly_allocation_pct}%</td>
+          <td><span style="font-weight:800; color:var(--accent);">${s.composite_score}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function changeSort(col) {
+      if (currentSortBy === col) {
+        currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSortBy = col;
+        currentSortDir = 'desc';
+      }
+      runScreener();
+    }
+
+    async function openModal(ticker) {
+      const [secRes, candleRes] = await Promise.all([
+        fetch(`/api/v1/securities/${ticker}`).then(r => r.json()),
+        fetch(`/api/v1/securities/${ticker}/candles`).then(r => r.json())
+      ]);
+
+      document.getElementById('modalTicker').textContent = `${secRes.ticker} — ${secRes.name}`;
+      document.getElementById('modalSubtitle').textContent = `${secRes.sector} | ${secRes.industry} | ${secRes.country} · ${secRes.exchange}`;
+
+      const grid = document.getElementById('modalMetricsGrid');
+      grid.innerHTML = `
+        <div class="kpi-card"><div class="kpi-label">Market Cap</div><div class="kpi-val">$${(secRes.market_cap_usd/1e9).toFixed(2)}B</div></div>
+        <div class="kpi-card"><div class="kpi-label">P/E Ratio</div><div class="kpi-val">${secRes.pe_ratio}x</div></div>
+        <div class="kpi-card"><div class="kpi-label">Return on Equity</div><div class="kpi-val">${(secRes.roe*100).toFixed(1)}%</div></div>
+        <div class="kpi-card"><div class="kpi-label">Piotroski F-Score</div><div class="kpi-val" style="color:var(--green)">${secRes.piotroski_f_score}/9</div></div>
+        <div class="kpi-card"><div class="kpi-label">Altman Z-Score</div><div class="kpi-val">${secRes.altman_z_score}</div></div>
+        <div class="kpi-card"><div class="kpi-label">Beneish M-Score</div><div class="kpi-val" style="color:${secRes.beneish_m_score < -1.78 ? 'var(--green)' : 'var(--red)'}">${secRes.beneish_m_score}</div></div>
+        <div class="kpi-card"><div class="kpi-label">Forensic Composite</div><div class="kpi-val">${secRes.forensic_health_score}/100</div></div>
+        <div class="kpi-card"><div class="kpi-label">Optimal Kelly Size</div><div class="kpi-val">${secRes.kelly_allocation_pct}%</div></div>
+      `;
+
+      drawChart(candleRes.candles);
+      document.getElementById('detailModal').classList.add('active');
+    }
+
+    function closeModalDirect() { document.getElementById('detailModal').classList.remove('active'); }
+    function closeModal(e) { if (e.target.id === 'detailModal') closeModalDirect(); }
+
+    function drawChart(candles) {
+      const canvas = document.getElementById('priceChartCanvas');
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      const w = rect.width;
+      const h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+      if (!candles || !candles.length) return;
+
+      const prices = candles.map(c => c.close);
+      const minP = Math.min(...prices) * 0.98;
+      const maxP = Math.max(...prices) * 1.02;
+
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      for (let i = 1; i <= 3; i++) {
+        const y = (h / 4) * i;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
+      grad.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+      ctx.beginPath();
+      candles.forEach((c, idx) => {
+        const x = (idx / (candles.length - 1)) * w;
+        const y = h - ((c.close - minP) / (maxP - minP)) * (h - 30) - 15;
+        if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.lineTo(w, h); ctx.lineTo(0, h);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      ctx.beginPath();
+      candles.forEach((c, idx) => {
+        const x = (idx / (candles.length - 1)) * w;
+        const y = h - ((c.close - minP) / (maxP - minP)) * (h - 30) - 15;
+        if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function exportData(format) {
+      if (!currentResults.length) return;
+      const headers = ["ticker", "name", "country", "exchange", "currency", "price", "change_pct_24h", "market_cap_usd", "pe_ratio", "roe", "piotroski_f_score", "altman_z_score", "beneish_m_score", "forensic_health_score", "kelly_allocation_pct", "composite_score"];
+      let csv = headers.join(",") + "\n";
+      currentResults.forEach(r => {
+        csv += headers.map(h => JSON.stringify(r[h] ?? "")).join(",") + "\n";
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `omniscreen_export_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

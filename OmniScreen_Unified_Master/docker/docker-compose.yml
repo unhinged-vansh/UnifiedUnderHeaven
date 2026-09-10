@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # 1. FastAPI Core Screener & Quant Service
+  screener-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: screener-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://screener_user:screener_secret@postgres:5432/screener_db
+      - CLICKHOUSE_URL=http://clickhouse:8123/market_data
+      - REDIS_URL=redis://redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+
+  # 2. PostgreSQL (OLTP: Securities Master, Saved Screens, Watchlists)
+  postgres:
+    image: postgres:16-alpine
+    container_name: screener-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: screener_user
+      POSTGRES_PASSWORD: screener_secret
+      POSTGRES_DB: screener_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U screener_user -d screener_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 3. ClickHouse (OLAP: High-throughput OHLCV, Columnar Historical Scans)
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3-alpine
+    container_name: screener-clickhouse
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - chdata:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 4. Redis (Hot Quote Cache, Session Tokens, Dynamic Rate-Limiter)
+  redis:
+    image: redis:7-alpine
+    container_name: screener-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 5. Redpanda (Kafka-compatible Ingestion Broker)
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v23.3.11
+    container_name: screener-redpanda
+    command:
+      - redpanda start
+      - --smp 1
+      - --memory 512M
+      - --overprovisioned
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://redpanda:9092,external://localhost:19092
+    ports:
+      - "19092:19092"
+      - "9644:9644"
+
+  # 6. Prometheus (Observability & Latency Monitoring)
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: screener-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+volumes:
+  pgdata:
+  chdata:
